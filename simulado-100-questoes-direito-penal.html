@@ -1,0 +1,2640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador 100 Questões - Direito (LEP + Penal)</title>
+    <style>
+        /* Reset e configurações globais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Cabeçalho */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #4ecca3;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1rem;
+        }
+
+        /* Barra de progresso */
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 30px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4ecca3 0%, #3ba87f 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Estatísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #4ecca3;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Tags de categorização */
+        .question-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .tag {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border: 1.5px solid;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .tag.tag-banca {
+            border-color: #6c757d;
+            color: #adb5bd;
+        }
+
+        .tag.tag-ano {
+            border-color: #6c757d;
+            color: #adb5bd;
+        }
+
+        .tag.tag-orgao {
+            border-color: #6c757d;
+            color: #adb5bd;
+        }
+
+        .tag.tag-materia {
+            border-color: #6c757d;
+            color: #adb5bd;
+        }
+
+        .tag.tag-dificuldade {
+            border-color: #4ecca3;
+            color: #4ecca3;
+            font-weight: 700;
+        }
+
+        .tag.tag-dificuldade.facil {
+            border-color: #4ecca3;
+            color: #4ecca3;
+        }
+
+        .tag.tag-dificuldade.media {
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .tag.tag-dificuldade.dificil {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        /* Questão */
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(78, 204, 163, 0.3);
+        }
+
+        .question-number {
+            color: #4ecca3;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .question-category {
+            display: none; /* Ocultar pois já temos nas tags */
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #f0f0f0;
+        }
+
+        /* Alternativas */
+        .alternatives {
+            margin-bottom: 20px;
+        }
+
+        .alternative {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .alternative:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .alternative.selected {
+            border-color: #4ecca3;
+            background: rgba(78, 204, 163, 0.1);
+        }
+
+        .alternative.correct {
+            border-color: #4ecca3;
+            background: rgba(78, 204, 163, 0.2);
+        }
+
+        .alternative.incorrect {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        .alternative.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .alternative-letter {
+            background: rgba(78, 204, 163, 0.3);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            color: #4ecca3;
+        }
+
+        .alternative.correct .alternative-letter {
+            background: #4ecca3;
+            color: #1a1a2e;
+        }
+
+        .alternative.incorrect .alternative-letter {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        /* Explicação */
+        .explanation {
+            background: rgba(78, 204, 163, 0.1);
+            border-left: 4px solid #4ecca3;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .explanation-title {
+            color: #4ecca3;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .explanation-text {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .legal-reference {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-style: italic;
+            color: #a0a0a0;
+            border-left: 3px solid #4ecca3;
+        }
+
+        /* Botões */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4ecca3 0%, #3ba87f 100%);
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 204, 163, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: #fff;
+        }
+
+        /* Mnemônicos */
+        .mnemonics-section {
+            margin-top: 30px;
+        }
+
+        .mnemonic-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4ecca3;
+        }
+
+        .mnemonic-title {
+            color: #4ecca3;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .mnemonic-content {
+            line-height: 1.6;
+            color: #d0d0d0;
+        }
+
+        /* Modal de resultado final */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #16213e;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .modal-title {
+            color: #4ecca3;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-stats {
+            margin: 30px 0;
+        }
+
+        .modal-stat {
+            margin: 15px 0;
+            font-size: 1.2rem;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        /* Toggle para modo aleatório */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4ecca3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho -->
+        <header>
+            <h1>📚 Simulador 100 Questões</h1>
+            <p class="subtitle">Direito (LEP + Penal) - Preparação para Concursos</p>
+        </header>
+
+        <!-- Barra de progresso -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="card">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Respondidas</div>
+                    <div class="stat-value" id="statAnswered">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Acertos</div>
+                    <div class="stat-value" id="statCorrect">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Erros</div>
+                    <div class="stat-value" id="statIncorrect">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">% Acertos</div>
+                    <div class="stat-value" id="statPercentage">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="card">
+            <div class="toggle-container">
+                <label class="toggle">
+                    <input type="checkbox" id="randomMode">
+                    <span class="slider"></span>
+                </label>
+                <label for="randomMode">Modo Aleatório</label>
+            </div>
+        </div>
+
+        <!-- Área da questão -->
+        <div class="card" id="questionCard">
+            <div class="question-tags" id="questionTags"></div>
+            <div class="question-header">
+                <div class="question-number" id="questionNumber">Questão 1 de 100</div>
+                <div class="question-category" id="questionCategory">LEP</div>
+            </div>
+            <div class="question-text" id="questionText"></div>
+            <div class="alternatives" id="alternatives"></div>
+            
+            <div class="explanation" id="explanation">
+                <div class="explanation-title">✓ Explicação</div>
+                <div class="explanation-text" id="explanationText"></div>
+                <div class="legal-reference" id="legalReference"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" id="btnPrevious">← Anterior</button>
+                <button id="btnNext">Próxima →</button>
+                <button class="btn-danger" id="btnRestart">🔄 Reiniciar</button>
+            </div>
+        </div>
+
+        <!-- Seção de Mnemônicos -->
+        <div class="card mnemonics-section">
+            <h2 style="color: #4ecca3; margin-bottom: 20px;">🧠 Mnemônicos & Técnicas de Memorização</h2>
+            
+            <div class="mnemonic-card">
+                <div class="mnemonic-title">1. Acrônimos - Direitos do Preso (LEP Art. 41)</div>
+                <div class="mnemonic-content">
+                    <strong>AVES PRECISAM</strong> voar livre:<br>
+                    <strong>A</strong>limentação<br>
+                    <strong>V</strong>estuário<br>
+                    <strong>E</strong>xercício<br>
+                    <strong>S</strong>aúde<br>
+                    <strong>P</strong>revidência<br>
+                    <strong>R</strong>eligião<br>
+                    <strong>E</strong>ducação<br>
+                    <strong>C</strong>orrespondência<br>
+                    <strong>I</strong>ntegridade física<br>
+                    <strong>S</strong>egurança<br>
+                    <strong>A</strong>ssistência jurídica<br>
+                    <strong>M</strong>aterial
+                </div>
+            </div>
+
+            <div class="mnemonic-card">
+                <div class="mnemonic-title">2. Regra dos 3R - Execução Penal</div>
+                <div class="mnemonic-content">
+                    <strong>Ressocialização</strong>: O objetivo principal da LEP é reintegrar o condenado à sociedade.<br>
+                    <strong>Responsabilidade</strong>: O Estado tem dever de garantir condições dignas.<br>
+                    <strong>Respeito</strong>: Dignidade da pessoa humana é inviolável, mesmo em privação de liberdade.
+                </div>
+            </div>
+
+            <div class="mnemonic-card">
+                <div class="mnemonic-title">3. Técnica da História - Regimes de Cumprimento</div>
+                <div class="mnemonic-content">
+                    Imagine uma escada com 3 degraus:<br>
+                    <strong>Degrau 1 (Fechado)</strong>: Você está trancado em casa (cela individual).<br>
+                    <strong>Degrau 2 (Semiaberto)</strong>: Pode sair para trabalhar, mas volta para dormir (colônia agrícola).<br>
+                    <strong>Degrau 3 (Aberto)</strong>: Livre durante o dia, apenas se apresenta à noite (casa de albergado).
+                </div>
+            </div>
+
+            <div class="mnemonic-card">
+                <div class="mnemonic-title">4. Método Pomodoro para Estudos</div>
+                <div class="mnemonic-content">
+                    <strong>25 minutos de estudo focado</strong> + <strong>5 minutos de pausa</strong><br>
+                    Após 4 ciclos, faça uma pausa maior de 15-30 minutos.<br>
+                    Use este simulado em sessões Pomodoro: responda 10-15 questões por ciclo, revise os erros na pausa.
+                </div>
+            </div>
+
+            <div class="mnemonic-card">
+                <div class="mnemonic-title">5. Mapa Mental da LEP - Estrutura Básica</div>
+                <div class="mnemonic-content">
+                    <strong>Centro: LEP (Lei 7.210/84)</strong><br>
+                    ├─ <strong>Parte Geral</strong>: Objeto e aplicação (arts. 1-4)<br>
+                    ├─ <strong>Condenado</strong>: Direitos, deveres, trabalho, assistência (arts. 5-60)<br>
+                    ├─ <strong>Execução das Penas</strong>: Regimes, remição, livramento (arts. 61-146)<br>
+                    ├─ <strong>Estabelecimentos Penais</strong>: Tipos e características (arts. 82-104)<br>
+                    └─ <strong>Órgãos de Execução</strong>: Juiz, MP, Conselho, Defensoria (arts. 61-81)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de resultado final -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <h2 class="modal-title">🎯 Simulado Concluído!</h2>
+            <div class="modal-stats">
+                <div class="modal-stat">Total de Acertos: <span id="finalCorrect" style="color: #4ecca3;">0</span></div>
+                <div class="modal-stat">Total de Erros: <span id="finalIncorrect" style="color: #ff6b6b;">0</span></div>
+                <div class="modal-stat">Aproveitamento: <span id="finalPercentage" style="color: #4ecca3;">0%</span></div>
+            </div>
+            <button onclick="closeModal()">Fechar</button>
+            <button class="btn-danger" onclick="restartSimulator()">Reiniciar Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== BANCO DE QUESTÕES ====================
+        const questionsBank = [
+            // LEP - 60 questões (60%)
+            {
+                category: "LEP",
+                banca: "CESPE",
+                ano: "2023",
+                orgao: "DEPEN",
+                dificuldade: "facil",
+                question: "Segundo a Lei de Execução Penal, qual é o objetivo da execução penal?",
+                alternatives: [
+                    "Punir o condenado de forma exemplar",
+                    "Efetivar as disposições de sentença ou decisão criminal e proporcionar condições para a harmônica integração social do condenado",
+                    "Isolar o condenado da sociedade permanentemente",
+                    "Garantir apenas a segurança pública"
+                ],
+                correct: 1,
+                explanation: "A LEP tem duplo objetivo: efetivar a sentença condenatória e promover a ressocialização do condenado, preparando-o para o retorno harmônico à sociedade.",
+                reference: "LEP art. 1º"
+            },
+            {
+                category: "LEP",
+                banca: "CESPE",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "A assistência ao preso e ao internado é dever do Estado. Qual das alternativas NÃO é uma forma de assistência prevista na LEP?",
+                alternatives: [
+                    "Assistência material",
+                    "Assistência à saúde",
+                    "Assistência financeira para familiares",
+                    "Assistência jurídica"
+                ],
+                correct: 2,
+                explanation: "A LEP prevê assistência material, à saúde, jurídica, educacional, social e religiosa. Não há previsão de assistência financeira direta aos familiares do preso.",
+                reference: "LEP art. 11"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2023",
+                orgao: "SEJUS",
+                dificuldade: "media",
+                question: "Qual é o prazo máximo para conclusão do exame criminológico?",
+                alternatives: [
+                    "30 dias",
+                    "45 dias",
+                    "60 dias",
+                    "90 dias"
+                ],
+                correct: 2,
+                explanation: "O exame criminológico deve ser realizado no prazo máximo de 60 dias, podendo ser prorrogado por igual período mediante justificativa fundamentada.",
+                reference: "LEP art. 8º, parágrafo único"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2024",
+                orgao: "SEAP",
+                dificuldade: "facil",
+                question: "Sobre o regime fechado, é correto afirmar que:",
+                alternatives: [
+                    "O condenado fica sujeito a trabalho no período diurno e isolamento durante o repouso noturno",
+                    "O condenado pode trabalhar externamente sem autorização",
+                    "Não há possibilidade de progressão de regime",
+                    "O trabalho é facultativo"
+                ],
+                correct: 0,
+                explanation: "No regime fechado, o condenado é submetido a trabalho durante o dia e isolamento celular no período noturno, em estabelecimento de segurança máxima ou média.",
+                reference: "LEP art. 34"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2024",
+                orgao: "SEAP",
+                dificuldade: "facil",
+                question: "A remição permite ao condenado:",
+                alternatives: [
+                    "Reduzir o tempo de pena pelo trabalho ou estudo",
+                    "Obter liberdade condicional imediata",
+                    "Mudar de regime sem requisitos",
+                    "Ser perdoado da pena"
+                ],
+                correct: 0,
+                explanation: "A remição é um instituto que permite ao condenado abater dias da pena através do trabalho (3 dias trabalhados = 1 dia remido) ou estudo (12 horas de estudo = 1 dia remido).",
+                reference: "LEP art. 126"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2021",
+                orgao: "PM",
+                dificuldade: "dificil",
+                question: "Qual o tempo mínimo de cumprimento de pena para progressão de regime no caso de crimes comuns?",
+                alternatives: [
+                    "1/4 da pena",
+                    "1/3 da pena",
+                    "1/6 da pena",
+                    "1/2 da pena"
+                ],
+                correct: 2,
+                explanation: "Para crimes comuns, o condenado primário deve cumprir ao menos 1/6 (um sexto) da pena no regime anterior para progredir. Reincidentes precisam de 1/5.",
+                reference: "LEP art. 112, inciso I"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "O livramento condicional pode ser concedido ao condenado que tenha cumprido:",
+                alternatives: [
+                    "Mais de 1/3 da pena, se não for reincidente em crime doloso",
+                    "Mais de 1/2 da pena, se reincidente em crime doloso",
+                    "Mais de 2/3 da pena, em qualquer caso",
+                    "Todas as alternativas estão corretas"
+                ],
+                correct: 3,
+                explanation: "Os requisitos variam: 1/3 para primários, 1/2 para reincidentes em crime doloso, e 2/3 para crimes hediondos ou equiparados (se primário).",
+                reference: "LEP art. 83"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2023",
+                orgao: "PM",
+                dificuldade: "dificil",
+                question: "Constitui direito do preso:",
+                alternatives: [
+                    "Visita do cônjuge, companheira, parentes e amigos em dias determinados",
+                    "Receber visitas a qualquer hora do dia",
+                    "Comunicar-se livremente com qualquer pessoa",
+                    "Ter acesso irrestrito a telefone celular"
+                ],
+                correct: 0,
+                explanation: "O direito à visita é assegurado, mas regulamentado pela administração penitenciária em dias e horários determinados, respeitando a segurança do estabelecimento.",
+                reference: "LEP art. 41, inciso X"
+            },
+            {
+                category: "LEP",
+                banca: "AOCP",
+                ano: "2024",
+                orgao: "SEJUS",
+                dificuldade: "media",
+                question: "A falta grave acarreta:",
+                alternatives: [
+                    "Perda de até 1/3 dos dias remidos",
+                    "Regressão de regime",
+                    "Revogação de até 1/3 do tempo de saídas temporárias",
+                    "Todas as alternativas estão corretas"
+                ],
+                correct: 3,
+                explanation: "A falta grave tem diversas consequências: regressão de regime, perda de dias remidos (até 1/3), revogação de saídas temporárias e início de nova contagem de prazo para progressão.",
+                reference: "LEP art. 50 e art. 127"
+            },
+            {
+                category: "LEP",
+                banca: "CESPE",
+                ano: "2021",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "O trabalho do condenado como dever social e condição de dignidade humana terá finalidade:",
+                alternatives: [
+                    "Exclusivamente punitiva",
+                    "Educativa e produtiva",
+                    "Apenas econômica",
+                    "Recreativa"
+                ],
+                correct: 1,
+                explanation: "O trabalho prisional tem dupla finalidade: educativa (ressocialização e aprendizado) e produtiva (geração de renda e dignidade), nunca meramente punitiva.",
+                reference: "LEP art. 28"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "facil",
+                question: "A cela individual deve conter:",
+                alternatives: [
+                    "Dormitório, aparelho sanitário e lavatório",
+                    "Apenas cama",
+                    "Televisão e rádio",
+                    "Computador com acesso à internet"
+                ],
+                correct: 0,
+                explanation: "A LEP estabelece padrões mínimos para a cela individual: dormitório, aparelho sanitário e lavatório, com área mínima de 6m² e condições de salubridade.",
+                reference: "LEP art. 88"
+            },
+            {
+                category: "LEP",
+                banca: "FCC",
+                ano: "2022",
+                orgao: "PC",
+                dificuldade: "dificil",
+                question: "Sobre a progressão de regime, é INCORRETO afirmar:",
+                alternatives: [
+                    "Depende de bom comportamento carcerário",
+                    "Exige cumprimento de requisito temporal",
+                    "É automática após o cumprimento do tempo mínimo",
+                    "Pode ser revogada em caso de falta grave"
+                ],
+                correct: 2,
+                explanation: "A progressão NÃO é automática. Mesmo cumprindo o tempo, o condenado precisa demonstrar bom comportamento e, em alguns casos, passar por avaliação.",
+                reference: "LEP art. 112"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2021",
+                orgao: "PM",
+                dificuldade: "facil",
+                question: "A saída temporária pode ser concedida ao condenado em regime:",
+                alternatives: [
+                    "Fechado",
+                    "Semiaberto",
+                    "Aberto",
+                    "Qualquer regime"
+                ],
+                correct: 1,
+                explanation: "A saída temporária é benefício exclusivo do regime semiaberto, permitindo ao condenado sair temporariamente para visita familiar, estudo ou trabalho externo.",
+                reference: "LEP art. 122"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2024",
+                orgao: "PM",
+                dificuldade: "dificil",
+                question: "O Conselho Nacional de Política Criminal e Penitenciária é subordinado ao:",
+                alternatives: [
+                    "Poder Judiciário",
+                    "Ministério Público",
+                    "Ministério da Justiça",
+                    "Conselho Nacional de Justiça"
+                ],
+                correct: 2,
+                explanation: "O CNPCP é órgão subordinado ao Ministério da Justiça e Segurança Pública, responsável por propor diretrizes da política criminal e penitenciária.",
+                reference: "LEP art. 64"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2022",
+                orgao: "PM",
+                dificuldade: "media",
+                question: "Compete ao Juízo da Execução:",
+                alternatives: [
+                    "Aplicar aos casos julgados lei posterior mais benigna",
+                    "Determinar a progressão de regime",
+                    "Declarar extinta a punibilidade",
+                    "Todas as alternativas estão corretas"
+                ],
+                correct: 3,
+                explanation: "O Juiz da Execução tem amplas competências, incluindo aplicação de lei mais benéfica, progressão/regressão de regime, extinção de punibilidade, entre outras.",
+                reference: "LEP art. 66"
+            },
+            {
+                category: "LEP",
+                banca: "AOCP",
+                ano: "2022",
+                orgao: "SEJUS",
+                dificuldade: "dificil",
+                question: "A assistência educacional compreenderá:",
+                alternatives: [
+                    "Apenas instrução escolar",
+                    "Instrução escolar e formação profissional",
+                    "Somente formação profissional",
+                    "Atividades recreativas exclusivamente"
+                ],
+                correct: 1,
+                explanation: "A assistência educacional é ampla, abrangendo instrução escolar (ensino fundamental e médio) e formação profissional (cursos técnicos e capacitação).",
+                reference: "LEP art. 17"
+            },
+            {
+                category: "LEP",
+                banca: "FCC",
+                ano: "2021",
+                orgao: "PC",
+                dificuldade: "dificil",
+                question: "O regime aberto baseia-se:",
+                alternatives: [
+                    "Na autodisciplina e senso de responsabilidade do condenado",
+                    "No isolamento celular",
+                    "Na vigilância constante",
+                    "No trabalho forçado"
+                ],
+                correct: 0,
+                explanation: "O regime aberto fundamenta-se na autodisciplina e responsabilidade do condenado, que trabalha durante o dia e recolhe-se à Casa do Albergado à noite.",
+                reference: "LEP art. 36"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2024",
+                orgao: "PM",
+                dificuldade: "facil",
+                question: "A remuneração do trabalho do preso deve ser:",
+                alternatives: [
+                    "Inferior ao salário mínimo",
+                    "Não inferior a 3/4 do salário mínimo",
+                    "Igual ao salário mínimo",
+                    "Superior ao salário mínimo"
+                ],
+                correct: 1,
+                explanation: "A remuneração do trabalho do preso não pode ser inferior a 3/4 (três quartos) do salário mínimo, garantindo dignidade e possibilidade de ressarcimento.",
+                reference: "LEP art. 29"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2022",
+                orgao: "SEJUS",
+                dificuldade: "media",
+                question: "São deveres do condenado, EXCETO:",
+                alternatives: [
+                    "Comportamento disciplinado e cumprimento fiel da sentença",
+                    "Obediência ao servidor e respeito a qualquer pessoa",
+                    "Execução do trabalho, das tarefas e ordens recebidas",
+                    "Renunciar à sua crença religiosa"
+                ],
+                correct: 3,
+                explanation: "A liberdade de crença religiosa é direito fundamental preservado mesmo durante a execução penal. O condenado não pode ser obrigado a renunciar sua fé.",
+                reference: "LEP art. 39 e art. 41, VII"
+            },
+            {
+                category: "LEP",
+                banca: "AOCP",
+                ano: "2021",
+                orgao: "SEAP",
+                dificuldade: "media",
+                question: "A Penitenciária de mulheres deve ser dotada de:",
+                alternatives: [
+                    "Seção para gestante e parturiente e creche",
+                    "Apenas celas comuns",
+                    "Somente berçário",
+                    "Instalações idênticas às masculinas"
+                ],
+                correct: 0,
+                explanation: "As penitenciárias femininas devem ter estrutura específica: seção para gestantes e parturientes, além de creche para crianças de até 7 anos (ou mais, conforme legislação atualizada).",
+                reference: "LEP art. 83, §2º e art. 89"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2021",
+                orgao: "DEPEN",
+                dificuldade: "facil",
+                question: "O exame criminológico:",
+                alternatives: [
+                    "É obrigatório em todos os casos",
+                    "Foi tornado facultativo pela Lei 10.792/2003",
+                    "Só pode ser realizado por psiquiatra",
+                    "Substitui o requisito temporal"
+                ],
+                correct: 1,
+                explanation: "A Lei 10.792/2003 tornou o exame criminológico facultativo, podendo o juiz determiná-lo quando entender necessário para avaliação da personalidade do condenado.",
+                reference: "LEP art. 112, §1º (redação da Lei 10.792/2003)"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2022",
+                orgao: "PM",
+                dificuldade: "facil",
+                question: "A colônia agrícola, industrial ou similar destina-se ao cumprimento da pena em regime:",
+                alternatives: [
+                    "Fechado",
+                    "Semiaberto",
+                    "Aberto",
+                    "Provisório"
+                ],
+                correct: 1,
+                explanation: "As colônias agrícolas, industriais ou similares são estabelecimentos destinados ao cumprimento de pena em regime semiaberto.",
+                reference: "LEP art. 91"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2021",
+                orgao: "SEJUS",
+                dificuldade: "facil",
+                question: "A autorização para saída temporária será concedida por prazo não superior a:",
+                alternatives: [
+                    "5 dias",
+                    "7 dias",
+                    "10 dias",
+                    "15 dias"
+                ],
+                correct: 1,
+                explanation: "A saída temporária pode ser autorizada por até 7 dias, podendo ser renovada por mais 4 vezes durante o ano, totalizando até 35 dias anuais.",
+                reference: "LEP art. 124"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2022",
+                orgao: "PC",
+                dificuldade: "facil",
+                question: "Sobre a assistência religiosa, é correto afirmar:",
+                alternatives: [
+                    "É proibida nos estabelecimentos penais",
+                    "Será prestada aos presos com liberdade de culto",
+                    "Apenas a religião católica é permitida",
+                    "Depende de autorização judicial"
+                ],
+                correct: 1,
+                explanation: "A assistência religiosa é garantida com ampla liberdade de culto, permitindo ao preso professar sua fé e receber assistência espiritual.",
+                reference: "LEP art. 24"
+            },
+            {
+                category: "LEP",
+                banca: "AOCP",
+                ano: "2022",
+                orgao: "SEJUS",
+                dificuldade: "media",
+                question: "O Patronato público ou particular tem por finalidade:",
+                alternatives: [
+                    "Fiscalizar o cumprimento da pena",
+                    "Prestar assistência aos albergados e egressos",
+                    "Julgar faltas disciplinares",
+                    "Administrar estabelecimentos penais"
+                ],
+                correct: 1,
+                explanation: "O Patronato é órgão de execução penal que presta assistência aos condenados em regime aberto e aos egressos, auxiliando na reintegração social.",
+                reference: "LEP art. 78"
+            },
+            {
+                category: "LEP",
+                banca: "FCC",
+                ano: "2022",
+                orgao: "SEAP",
+                dificuldade: "facil",
+                question: "A Casa do Albergado destina-se ao cumprimento de pena privativa de liberdade em regime:",
+                alternatives: [
+                    "Fechado",
+                    "Semiaberto",
+                    "Aberto",
+                    "Fechado e semiaberto"
+                ],
+                correct: 2,
+                explanation: "A Casa do Albergado é o estabelecimento penal destinado ao cumprimento de pena em regime aberto, caracterizado pela autodisciplina.",
+                reference: "LEP art. 93"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2024",
+                orgao: "SEAP",
+                dificuldade: "facil",
+                question: "O condenado que cumpre pena em regime fechado ou semiaberto poderá remir parte do tempo de execução da pena, desde que:",
+                alternatives: [
+                    "Trabalhe ou estude",
+                    "Apenas trabalhe",
+                    "Apenas estude",
+                    "Pague fiança"
+                ],
+                correct: 0,
+                explanation: "A remição pode ocorrer tanto pelo trabalho quanto pelo estudo, ou pela combinação de ambos, incentivando a ressocialização do condenado.",
+                reference: "LEP art. 126"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2021",
+                orgao: "DEPEN",
+                dificuldade: "facil",
+                question: "A falta grave interrompe o prazo para:",
+                alternatives: [
+                    "Progressão de regime",
+                    "Livramento condicional",
+                    "Ambas as alternativas estão corretas",
+                    "Nenhuma das alternativas"
+                ],
+                correct: 2,
+                explanation: "A prática de falta grave interrompe a contagem do prazo tanto para progressão de regime quanto para livramento condicional, reiniciando a contagem.",
+                reference: "LEP art. 127"
+            },
+            {
+                category: "LEP",
+                banca: "AOCP",
+                ano: "2022",
+                orgao: "SEJUS",
+                dificuldade: "facil",
+                question: "O Centro de Observação destina-se à:",
+                alternatives: [
+                    "Realização de exames gerais e criminológicos",
+                    "Cumprimento de pena em regime fechado",
+                    "Isolamento disciplinar",
+                    "Custódia de presos provisórios"
+                ],
+                correct: 0,
+                explanation: "O Centro de Observação é estabelecimento especializado na realização de exames gerais e criminológicos para classificação dos condenados.",
+                reference: "LEP art. 96"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2023",
+                orgao: "SEJUS",
+                dificuldade: "dificil",
+                question: "A autorização de saída temporária será revogada quando:",
+                alternatives: [
+                    "O condenado praticar fato definido como crime",
+                    "Houver descumprimento das condições impostas",
+                    "Ambas as alternativas estão corretas",
+                    "Nunca pode ser revogada"
+                ],
+                correct: 2,
+                explanation: "A saída temporária pode ser revogada por prática de crime, falta grave ou descumprimento das condições impostas na autorização.",
+                reference: "LEP art. 125"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2021",
+                orgao: "SEAP",
+                dificuldade: "media",
+                question: "O Hospital de Custódia e Tratamento Psiquiátrico destina-se aos:",
+                alternatives: [
+                    "Presos doentes",
+                    "Inimputáveis e semi-imputáveis",
+                    "Condenados em regime fechado",
+                    "Presos provisórios"
+                ],
+                correct: 1,
+                explanation: "O HCTP é destinado aos inimputáveis (medida de segurança) e semi-imputáveis que necessitam de tratamento psiquiátrico especializado.",
+                reference: "LEP art. 99"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2021",
+                orgao: "PC",
+                dificuldade: "dificil",
+                question: "A execução da pena privativa de liberdade ficará sujeita à forma:",
+                alternatives: [
+                    "Progressiva",
+                    "Regressiva",
+                    "Estática",
+                    "Alternativa"
+                ],
+                correct: 0,
+                explanation: "O sistema progressivo permite que o condenado avance de regimes mais rigorosos para mais brandos, conforme seu mérito e cumprimento de requisitos.",
+                reference: "LEP art. 112"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "O trabalho externo é admissível para os condenados em regime:",
+                alternatives: [
+                    "Apenas fechado",
+                    "Fechado e semiaberto",
+                    "Apenas semiaberto",
+                    "Todos os regimes"
+                ],
+                correct: 1,
+                explanation: "O trabalho externo é permitido tanto no regime fechado (em serviços ou obras públicas) quanto no semiaberto, observadas as condições legais.",
+                reference: "LEP art. 36 e art. 37"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2021",
+                orgao: "DEPEN",
+                dificuldade: "facil",
+                question: "A assistência social tem por finalidade:",
+                alternatives: [
+                    "Amparar o preso e prepará-lo para o retorno à liberdade",
+                    "Apenas fornecer benefícios financeiros",
+                    "Substituir a assistência jurídica",
+                    "Fiscalizar o comportamento do preso"
+                ],
+                correct: 0,
+                explanation: "A assistência social visa amparar o preso e sua família, orientá-lo para o retorno à liberdade e auxiliar na obtenção de trabalho e documentação.",
+                reference: "LEP art. 22 e art. 23"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2023",
+                orgao: "SEJUS",
+                dificuldade: "media",
+                question: "O preso provisório ficará separado do condenado por sentença transitada em julgado. Esta separação visa:",
+                alternatives: [
+                    "Apenas organização administrativa",
+                    "Evitar influência negativa e respeitar a presunção de inocência",
+                    "Facilitar o trabalho dos agentes",
+                    "Reduzir custos"
+                ],
+                correct: 1,
+                explanation: "A separação protege o preso provisório (ainda presumidamente inocente) da influência de condenados e respeita princípios constitucionais.",
+                reference: "LEP art. 84"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2023",
+                orgao: "SEJUS",
+                dificuldade: "facil",
+                question: "A mulher condenada terá ensino profissional adequado à sua condição. A LEP determina que:",
+                alternatives: [
+                    "Não há previsão específica",
+                    "Deve ser idêntico ao dos homens",
+                    "Deve considerar suas especificidades",
+                    "É proibido ensino profissional para mulheres"
+                ],
+                correct: 2,
+                explanation: "A LEP reconhece as especificidades da condição feminina e determina que o ensino profissional seja adequado a essas particularidades.",
+                reference: "LEP art. 19"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2021",
+                orgao: "PC",
+                dificuldade: "dificil",
+                question: "Ao condenado e ao internado serão assegurados todos os direitos não atingidos pela sentença ou pela lei. Este princípio refere-se:",
+                alternatives: [
+                    "À limitação dos efeitos da condenação",
+                    "À perda total de direitos",
+                    "À suspensão de direitos políticos",
+                    "À impossibilidade de trabalho"
+                ],
+                correct: 0,
+                explanation: "Apenas os direitos expressamente restringidos pela sentença ou lei são atingidos. Os demais direitos fundamentais permanecem intactos.",
+                reference: "LEP art. 3º"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "dificil",
+                question: "O Conselho da Comunidade é composto por:",
+                alternatives: [
+                    "Apenas autoridades judiciárias",
+                    "Representantes da sociedade civil",
+                    "Somente agentes penitenciários",
+                    "Exclusivamente advogados"
+                ],
+                correct: 1,
+                explanation: "O Conselho da Comunidade é formado por membros da sociedade civil que visitam estabelecimentos penais e apresentam sugestões de melhorias.",
+                reference: "LEP art. 80 e art. 81"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2023",
+                orgao: "DEPEN",
+                dificuldade: "facil",
+                question: "A progressão de regime pode ser negada quando:",
+                alternatives: [
+                    "O condenado não demonstrar bom comportamento",
+                    "Houver prática de falta grave",
+                    "Não forem cumpridos os requisitos objetivos e subjetivos",
+                    "Todas as alternativas estão corretas"
+                ],
+                correct: 3,
+                explanation: "A progressão exige requisitos objetivos (tempo) e subjetivos (mérito/comportamento). A falta grave ou mau comportamento impedem a concessão.",
+                reference: "LEP art. 112"
+            },
+            {
+                category: "LEP",
+                banca: "FCC",
+                ano: "2021",
+                orgao: "PM",
+                dificuldade: "facil",
+                question: "O regime disciplinar diferenciado (RDD) pode ser aplicado:",
+                alternatives: [
+                    "A qualquer preso, sem requisitos",
+                    "Aos presos provisórios ou condenados que apresentem alto risco",
+                    "Apenas a condenados por crimes hediondos",
+                    "Nunca pode ser aplicado"
+                ],
+                correct: 1,
+                explanation: "O RDD é medida excepcional aplicável a presos (provisórios ou condenados) que apresentem alto risco para a ordem e segurança do estabelecimento.",
+                reference: "LEP art. 52"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2022",
+                orgao: "SEAP",
+                dificuldade: "media",
+                question: "A duração máxima do regime disciplinar diferenciado é de:",
+                alternatives: [
+                    "180 dias",
+                    "360 dias",
+                    "1 ano",
+                    "2 anos"
+                ],
+                correct: 1,
+                explanation: "O RDD pode ser aplicado por até 360 dias, sem prejuízo de repetição da sanção por nova falta grave de mesma espécie.",
+                reference: "LEP art. 52, §2º"
+            },
+            {
+                category: "LEP",
+                banca: "FCC",
+                ano: "2022",
+                orgao: "SEAP",
+                dificuldade: "dificil",
+                question: "A assistência à saúde do preso compreende:",
+                alternatives: [
+                    "Apenas atendimento emergencial",
+                    "Atendimento médico, farmacêutico e odontológico",
+                    "Somente tratamento psiquiátrico",
+                    "Não há previsão legal"
+                ],
+                correct: 1,
+                explanation: "A assistência à saúde é integral, incluindo atendimento médico, farmacêutico e odontológico, preventivo e curativo.",
+                reference: "LEP art. 14"
+            },
+            {
+                category: "LEP",
+                banca: "FCC",
+                ano: "2022",
+                orgao: "SEAP",
+                dificuldade: "facil",
+                question: "O egresso que cumpriu pena tem direito à assistência por quanto tempo?",
+                alternatives: [
+                    "6 meses",
+                    "1 ano",
+                    "2 anos",
+                    "5 anos"
+                ],
+                correct: 1,
+                explanation: "O egresso que cumpriu pena tem direito à assistência social e orientação para reintegração por 1 ano após a libertação.",
+                reference: "LEP art. 25"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2023",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "A visita íntima é considerada:",
+                alternatives: [
+                    "Um privilégio concedido discricionariamente",
+                    "Um direito decorrente da dignidade da pessoa humana",
+                    "Uma recompensa por bom comportamento",
+                    "Proibida pela LEP"
+                ],
+                correct: 1,
+                explanation: "Embora não expressamente prevista na LEP original, a visita íntima é reconhecida como direito fundamental decorrente da dignidade humana.",
+                reference: "Jurisprudência e Resolução CNJ nº 175/2011"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2022",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "O trabalho do preso será remunerado mediante prévia tabela. O produto da remuneração deve atender a:",
+                alternatives: [
+                    "Apenas indenização dos danos causados pelo crime",
+                    "Assistência à família, pequenas despesas pessoais, ressarcimento ao Estado e constituição de pecúlio",
+                    "Somente despesas pessoais",
+                    "Exclusivamente ao pecúlio"
+                ],
+                correct: 1,
+                explanation: "A remuneração é dividida em: assistência à família, pequenas despesas pessoais, ressarcimento ao Estado pelas despesas e constituição de pecúlio.",
+                reference: "LEP art. 29"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2022",
+                orgao: "PM",
+                dificuldade: "media",
+                question: "A audiência de custódia deve ser realizada em até:",
+                alternatives: [
+                    "12 horas",
+                    "24 horas",
+                    "48 horas",
+                    "72 horas"
+                ],
+                correct: 1,
+                explanation: "A audiência de custódia deve ocorrer em até 24 horas após a prisão, para que a autoridade judicial avalie a legalidade e necessidade da prisão.",
+                reference: "Resolução CNJ nº 213/2015 e Pacto de San José da Costa Rica"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2023",
+                orgao: "PC",
+                dificuldade: "media",
+                question: "O livramento condicional será revogado se o liberado:",
+                alternatives: [
+                    "Vier a ser condenado por crime anterior",
+                    "Frustrar os fins da execução ou não cumprir as condições",
+                    "Praticar falta grave",
+                    "Todas as alternativas estão corretas"
+                ],
+                correct: 3,
+                explanation: "O livramento condicional pode ser revogado por condenação por crime anterior, descumprimento de condições ou prática de nova infração penal.",
+                reference: "LEP art. 86 e art. 87"
+            },
+            {
+                category: "LEP",
+                banca: "VUNESP",
+                ano: "2024",
+                orgao: "PC",
+                dificuldade: "media",
+                question: "A Defensoria Pública tem o dever de:",
+                alternatives: [
+                    "Requerer todas as providências necessárias ao desenvolvimento do processo executivo",
+                    "Apenas defender em processos criminais",
+                    "Somente atuar quando solicitada",
+                    "Fiscalizar estabelecimentos penais"
+                ],
+                correct: 0,
+                explanation: "A Defensoria Pública tem papel ativo na execução penal, devendo requerer todas as providências necessárias aos interesses do assistido.",
+                reference: "LEP art. 81-A"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2023",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "O estabelecimento penal deve ter lotação compatível com:",
+                alternatives: [
+                    "A demanda existente",
+                    "Sua estrutura e finalidade",
+                    "O número de agentes disponíveis",
+                    "Não há previsão legal"
+                ],
+                correct: 1,
+                explanation: "A LEP determina que a lotação deve respeitar a estrutura e finalidade do estabelecimento, evitando superlotação e garantindo condições dignas.",
+                reference: "LEP art. 85"
+            },
+            {
+                category: "LEP",
+                banca: "AOCP",
+                ano: "2021",
+                orgao: "DEPEN",
+                dificuldade: "facil",
+                question: "A inclusão no regime disciplinar diferenciado depende de:",
+                alternatives: [
+                    "Decisão discricionária do diretor do presídio",
+                    "Decisão fundamentada do juiz da execução",
+                    "Autorização do Ministério Público",
+                    "Não precisa de autorização"
+                ],
+                correct: 1,
+                explanation: "A inclusão no RDD exige decisão fundamentada do juiz da execução, ouvidos o Ministério Público e a defesa, respeitando o devido processo legal.",
+                reference: "LEP art. 54"
+            },
+            {
+                category: "LEP",
+                banca: "FGV",
+                ano: "2024",
+                orgao: "PM",
+                dificuldade: "dificil",
+                question: "O tempo remido será computado como:",
+                alternatives: [
+                    "Pena cumprida para todos os efeitos",
+                    "Apenas para progressão de regime",
+                    "Somente para livramento condicional",
+                    "Não tem efeito prático"
+                ],
+                correct: 0,
+                explanation: "Os dias remidos são computados como pena efetivamente cumprida para todos os fins: progressão, livramento condicional, extinção da pena, etc.",
+                reference: "LEP art. 128"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2021",
+                orgao: "PC",
+                dificuldade: "dificil",
+                question: "A prática de falta grave acarreta a perda de quantos dias remidos?",
+                alternatives: [
+                    "Até 1/5 do tempo remido",
+                    "Até 1/4 do tempo remido",
+                    "Até 1/3 do tempo remido",
+                    "Até 1/2 do tempo remido"
+                ],
+                correct: 2,
+                explanation: "A falta grave pode acarretar a perda de até 1/3 (um terço) dos dias remidos, além de outras consequências como regressão de regime.",
+                reference: "LEP art. 127"
+            },
+            {
+                category: "LEP",
+                banca: "FCC",
+                ano: "2021",
+                orgao: "SEAP",
+                dificuldade: "media",
+                question: "O Ministério Público fiscalizará a execução da pena e da medida de segurança. Esta atribuição é:",
+                alternatives: [
+                    "Facultativa",
+                    "Obrigatória",
+                    "Apenas em casos graves",
+                    "Não prevista em lei"
+                ],
+                correct: 1,
+                explanation: "A fiscalização pelo Ministério Público é obrigatória e decorre de sua função constitucional de fiscal da ordem jurídica e da execução penal.",
+                reference: "LEP art. 67 e art. 68"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2024",
+                orgao: "PC",
+                dificuldade: "facil",
+                question: "A remição pelo estudo considera que:",
+                alternatives: [
+                    "1 dia de estudo = 1 dia remido",
+                    "3 dias de estudo = 1 dia remido",
+                    "12 horas de estudo = 1 dia remido",
+                    "24 horas de estudo = 1 dia remido"
+                ],
+                correct: 2,
+                explanation: "A cada 12 horas de frequência escolar (atividade de ensino fundamental, médio, profissionalizante, superior ou requalificação), o preso resgata 1 dia de pena.",
+                reference: "LEP art. 126, §1º, II"
+            },
+            {
+                category: "LEP",
+                banca: "IBFC",
+                ano: "2023",
+                orgao: "SEJUS",
+                dificuldade: "media",
+                question: "O condenado por crime hediondo, em regime inicial fechado, para progredir ao semiaberto, deve cumprir:",
+                alternatives: [
+                    "1/6 da pena se primário",
+                    "2/5 da pena se primário",
+                    "3/5 da pena se reincidente",
+                    "Alternativas B e C estão corretas"
+                ],
+                correct: 3,
+                explanation: "Para crimes hediondos: primários devem cumprir 2/5 da pena; reincidentes, 3/5 da pena para progredir de regime.",
+                reference: "Lei 8.072/90, art. 2º, §2º"
+            },
+
+            // Direito Administrativo aplicado à esfera penal - 10 questões (10%)
+            {
+                category: "Dir. Administrativo",
+                banca: "AOCP",
+                ano: "2021",
+                orgao: "TJ",
+                dificuldade: "facil",
+                question: "O regime jurídico dos servidores públicos da administração penitenciária é regido por:",
+                alternatives: [
+                    "Lei específica de cada ente federativo",
+                    "CLT exclusivamente",
+                    "Normas militares",
+                    "Não há regime específico"
+                ],
+                correct: 0,
+                explanation: "Os servidores da administração penitenciária são regidos pelo regime jurídico estatutário de cada ente (União, Estados, DF), com legislação específica.",
+                reference: "CF/88 art. 39 e legislação estadual"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "CESPE",
+                ano: "2022",
+                orgao: "TJ",
+                dificuldade: "media",
+                question: "O poder disciplinar da Administração Pública permite:",
+                alternatives: [
+                    "Punir infrações funcionais de servidores",
+                    "Aplicar sanções penais",
+                    "Substituir o Poder Judiciário",
+                    "Ignorar o devido processo legal"
+                ],
+                correct: 0,
+                explanation: "O poder disciplinar permite à Administração apurar e punir infrações funcionais de seus servidores, respeitando sempre o devido processo legal.",
+                reference: "Direito Administrativo - Poder Disciplinar"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "AOCP",
+                ano: "2022",
+                orgao: "TJ",
+                dificuldade: "facil",
+                question: "A responsabilidade civil do Estado por danos causados por agentes penitenciários é:",
+                alternatives: [
+                    "Subjetiva",
+                    "Objetiva",
+                    "Inexistente",
+                    "Subsidiária"
+                ],
+                correct: 1,
+                explanation: "A responsabilidade do Estado é objetiva (independe de culpa), bastando o nexo causal entre a ação do agente público e o dano causado.",
+                reference: "CF/88 art. 37, §6º"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "QUADRIX",
+                ano: "2024",
+                orgao: "MPU",
+                dificuldade: "dificil",
+                question: "O processo administrativo disciplinar deve observar:",
+                alternatives: [
+                    "Apenas a celeridade",
+                    "Contraditório e ampla defesa",
+                    "Sigilo absoluto",
+                    "Informalidade total"
+                ],
+                correct: 1,
+                explanation: "O PAD deve respeitar rigorosamente o contraditório e a ampla defesa, sob pena de nulidade, garantindo ao servidor o direito de se defender.",
+                reference: "CF/88 art. 5º, LV e Lei 8.112/90"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "VUNESP",
+                ano: "2021",
+                orgao: "TRF",
+                dificuldade: "dificil",
+                question: "A licitação para contratação de serviços penitenciários deve observar:",
+                alternatives: [
+                    "Apenas o menor preço",
+                    "Princípios da legalidade, impessoalidade, moralidade, publicidade e eficiência",
+                    "Discricionariedade absoluta",
+                    "Não precisa de licitação"
+                ],
+                correct: 1,
+                explanation: "Todas as contratações públicas devem observar os princípios constitucionais da Administração Pública e as normas de licitação.",
+                reference: "CF/88 art. 37 e Lei 14.133/2021"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "IBFC",
+                ano: "2022",
+                orgao: "TJSP",
+                dificuldade: "facil",
+                question: "O desvio de função de servidor público penitenciário:",
+                alternatives: [
+                    "É permitido por necessidade do serviço",
+                    "Viola o princípio da legalidade",
+                    "Não gera consequências",
+                    "É regulamentado pela LEP"
+                ],
+                correct: 1,
+                explanation: "O desvio de função viola o princípio da legalidade, pois o servidor deve exercer apenas as atribuições do cargo para o qual foi nomeado.",
+                reference: "Princípio da Legalidade - CF/88 art. 37"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "QUADRIX",
+                ano: "2022",
+                orgao: "TJ",
+                dificuldade: "media",
+                question: "A investidura em cargo público de agente penitenciário depende de:",
+                alternatives: [
+                    "Indicação política",
+                    "Aprovação prévia em concurso público",
+                    "Experiência anterior",
+                    "Formação militar"
+                ],
+                correct: 1,
+                explanation: "A investidura em cargo público exige aprovação prévia em concurso público de provas ou provas e títulos, conforme a natureza e complexidade do cargo.",
+                reference: "CF/88 art. 37, II"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "QUADRIX",
+                ano: "2023",
+                orgao: "TJSP",
+                dificuldade: "facil",
+                question: "O ato administrativo que determina a inclusão de preso no RDD deve ser:",
+                alternatives: [
+                    "Motivado e fundamentado",
+                    "Discricionário e sem justificativa",
+                    "Sigiloso",
+                    "Verbal"
+                ],
+                correct: 0,
+                explanation: "Todo ato administrativo que afeta direitos deve ser motivado e fundamentado, permitindo o controle de legalidade e legitimidade.",
+                reference: "Lei 9.784/99 art. 50 e princípio da motivação"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "QUADRIX",
+                ano: "2023",
+                orgao: "TRF",
+                dificuldade: "dificil",
+                question: "A estabilidade do servidor público é adquirida após:",
+                alternatives: [
+                    "1 ano de efetivo exercício",
+                    "2 anos de efetivo exercício",
+                    "3 anos de efetivo exercício e aprovação em avaliação",
+                    "5 anos de efetivo exercício"
+                ],
+                correct: 2,
+                explanation: "A estabilidade é adquirida após 3 anos de efetivo exercício, mediante avaliação especial de desempenho por comissão instituída.",
+                reference: "CF/88 art. 41"
+            },
+            {
+                category: "Dir. Administrativo",
+                banca: "IBFC",
+                ano: "2024",
+                orgao: "TJ",
+                dificuldade: "media",
+                question: "A improbidade administrativa praticada por servidor penitenciário pode acarretar:",
+                alternatives: [
+                    "Apenas advertência",
+                    "Suspensão dos direitos políticos, perda da função pública e ressarcimento ao erário",
+                    "Somente multa",
+                    "Não há sanção prevista"
+                ],
+                correct: 1,
+                explanation: "A improbidade administrativa gera graves sanções: suspensão de direitos políticos, perda da função pública, indisponibilidade de bens e ressarcimento.",
+                reference: "CF/88 art. 37, §4º e Lei 8.429/92"
+            },
+
+            // Direito Constitucional - 10 questões (10%)
+            {
+                category: "Dir. Constitucional",
+                banca: "QUADRIX",
+                ano: "2021",
+                orgao: "MPU",
+                dificuldade: "media",
+                question: "A dignidade da pessoa humana é:",
+                alternatives: [
+                    "Um objetivo da República",
+                    "Um fundamento da República Federativa do Brasil",
+                    "Um princípio da ordem econômica",
+                    "Uma garantia processual"
+                ],
+                correct: 1,
+                explanation: "A dignidade da pessoa humana é fundamento da República (art. 1º, III), aplicando-se também aos presos, que não perdem sua condição de pessoa.",
+                reference: "CF/88 art. 1º, III"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "AOCP",
+                ano: "2021",
+                orgao: "DPU",
+                dificuldade: "dificil",
+                question: "Segundo a Constituição Federal, ninguém será submetido a:",
+                alternatives: [
+                    "Tratamento desumano ou degradante",
+                    "Penas de morte, salvo em caso de guerra declarada",
+                    "Penas de caráter perpétuo",
+                    "Todas as alternativas estão corretas"
+                ],
+                correct: 3,
+                explanation: "A CF/88 proíbe tortura, tratamento desumano ou degradante, pena de morte (salvo guerra), penas perpétuas, de trabalhos forçados, de banimento e cruéis.",
+                reference: "CF/88 art. 5º, III e XLVII"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "QUADRIX",
+                ano: "2024",
+                orgao: "MPU",
+                dificuldade: "facil",
+                question: "A pena será cumprida em estabelecimentos distintos, de acordo com:",
+                alternatives: [
+                    "Apenas a gravidade do crime",
+                    "A natureza do delito, idade e sexo do apenado",
+                    "Somente o regime de cumprimento",
+                    "Não há previsão constitucional"
+                ],
+                correct: 1,
+                explanation: "A Constituição determina que a pena seja cumprida em estabelecimentos distintos, considerando natureza do delito, idade e sexo do apenado.",
+                reference: "CF/88 art. 5º, XLVIII"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "AOCP",
+                ano: "2023",
+                orgao: "MPU",
+                dificuldade: "media",
+                question: "É assegurado aos presos:",
+                alternatives: [
+                    "O respeito à integridade física e moral",
+                    "Direito de voto",
+                    "Liberdade de locomoção",
+                    "Todas as alternativas"
+                ],
+                correct: 0,
+                explanation: "A integridade física e moral é garantia fundamental que não pode ser violada, mesmo durante o cumprimento de pena. Os direitos políticos ficam suspensos.",
+                reference: "CF/88 art. 5º, XLIX"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "AOCP",
+                ano: "2021",
+                orgao: "TRF",
+                dificuldade: "facil",
+                question: "A presunção de inocência significa que:",
+                alternatives: [
+                    "Ninguém será considerado culpado até o trânsito em julgado de sentença penal condenatória",
+                    "O acusado pode ser preso antes do julgamento",
+                    "A prisão provisória é sempre ilegal",
+                    "O réu não precisa se defender"
+                ],
+                correct: 0,
+                explanation: "A presunção de inocência (ou não culpabilidade) impede que alguém seja tratado como culpado antes do trânsito em julgado da condenação.",
+                reference: "CF/88 art. 5º, LVII"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "CESPE",
+                ano: "2024",
+                orgao: "TJ",
+                dificuldade: "dificil",
+                question: "A prisão de qualquer pessoa e o local onde se encontre serão comunicados imediatamente:",
+                alternatives: [
+                    "Apenas ao juiz competente",
+                    "Ao juiz competente e à família do preso ou pessoa por ele indicada",
+                    "Somente à família",
+                    "Ao Ministério Público"
+                ],
+                correct: 1,
+                explanation: "A comunicação imediata ao juiz e à família (ou pessoa indicada) é garantia constitucional que permite o controle da legalidade da prisão.",
+                reference: "CF/88 art. 5º, LXII"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "QUADRIX",
+                ano: "2021",
+                orgao: "TJ",
+                dificuldade: "facil",
+                question: "O preso tem direito à identificação dos responsáveis por sua prisão ou por seu interrogatório policial. Este direito visa:",
+                alternatives: [
+                    "Facilitar eventual responsabilização por abuso",
+                    "Apenas registro administrativo",
+                    "Controle estatístico",
+                    "Não tem finalidade específica"
+                ],
+                correct: 0,
+                explanation: "A identificação dos responsáveis permite ao preso conhecer quem o prendeu ou interrogou, possibilitando responsabilização em caso de abuso ou ilegalidade.",
+                reference: "CF/88 art. 5º, LXIV"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "QUADRIX",
+                ano: "2023",
+                orgao: "TRF",
+                dificuldade: "facil",
+                question: "A prisão ilegal será imediatamente relaxada:",
+                alternatives: [
+                    "Pelo delegado de polícia",
+                    "Pela autoridade judiciária",
+                    "Pelo Ministério Público",
+                    "Pela Defensoria Pública"
+                ],
+                correct: 1,
+                explanation: "Somente a autoridade judiciária pode relaxar prisão ilegal, garantindo o controle jurisdicional sobre a privação de liberdade.",
+                reference: "CF/88 art. 5º, LXV"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "QUADRIX",
+                ano: "2022",
+                orgao: "AGU",
+                dificuldade: "media",
+                question: "A assistência jurídica integral e gratuita aos que comprovarem insuficiência de recursos é prestada por:",
+                alternatives: [
+                    "Advogados particulares",
+                    "Defensoria Pública",
+                    "Ministério Público",
+                    "OAB"
+                ],
+                correct: 1,
+                explanation: "A Defensoria Pública é instituição essencial à justiça, incumbida da orientação jurídica e defesa dos necessitados em todos os graus.",
+                reference: "CF/88 art. 5º, LXXIV e art. 134"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "QUADRIX",
+                ano: "2022",
+                orgao: "DPU",
+                dificuldade: "dificil",
+                question: "A competência para legislar sobre direito penitenciário é:",
+                alternatives: [
+                    "Exclusiva da União",
+                    "Concorrente entre União, Estados e DF",
+                    "Privativa dos Estados",
+                    "Dos Municípios"
+                ],
+                correct: 1,
+                explanation: "A competência para legislar sobre direito penitenciário é concorrente, cabendo à União estabelecer normas gerais e aos Estados/DF suplementar.",
+                reference: "CF/88 art. 24, I"
+            },
+
+            // PND / Lei de Drogas - 10 questões (10%)
+            {
+                category: "Lei de Drogas",
+                banca: "VUNESP",
+                ano: "2021",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "A Lei 11.343/2006 instituiu o Sistema Nacional de Políticas Públicas sobre Drogas (Sisnad). Seus objetivos incluem:",
+                alternatives: [
+                    "Apenas a repressão ao tráfico",
+                    "Articular, integrar e organizar atividades de prevenção, tratamento e repressão",
+                    "Somente a prevenção",
+                    "Exclusivamente o tratamento"
+                ],
+                correct: 1,
+                explanation: "O Sisnad tem abordagem integrada, articulando prevenção do uso indevido, atenção e reinserção social de usuários, e repressão à produção e tráfico.",
+                reference: "Lei 11.343/2006 art. 3º"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "QUADRIX",
+                ano: "2021",
+                orgao: "PC",
+                dificuldade: "dificil",
+                question: "Adquirir, guardar, ter em depósito, transportar ou trazer consigo drogas para consumo pessoal caracteriza:",
+                alternatives: [
+                    "Tráfico de drogas",
+                    "Crime de menor potencial ofensivo (usuário)",
+                    "Contravenção penal",
+                    "Conduta atípica"
+                ],
+                correct: 1,
+                explanation: "O porte para consumo pessoal é crime de menor potencial ofensivo, sem pena de prisão, com medidas educativas e advertência sobre efeitos das drogas.",
+                reference: "Lei 11.343/2006 art. 28"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "FGV",
+                ano: "2021",
+                orgao: "PRF",
+                dificuldade: "media",
+                question: "As penas previstas para o usuário de drogas são:",
+                alternatives: [
+                    "Reclusão de 1 a 3 anos",
+                    "Advertência, prestação de serviços à comunidade e medida educativa",
+                    "Apenas multa",
+                    "Detenção de 6 meses a 1 ano"
+                ],
+                correct: 1,
+                explanation: "A lei não prevê pena privativa de liberdade para usuários, apenas advertência, prestação de serviços à comunidade e comparecimento a programa educativo.",
+                reference: "Lei 11.343/2006 art. 28"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "FGV",
+                ano: "2021",
+                orgao: "PRF",
+                dificuldade: "media",
+                question: "O crime de tráfico de drogas é punido com:",
+                alternatives: [
+                    "Detenção de 1 a 3 anos",
+                    "Reclusão de 5 a 15 anos e multa",
+                    "Reclusão de 3 a 10 anos",
+                    "Apenas multa"
+                ],
+                correct: 1,
+                explanation: "O tráfico de drogas é crime hediondo, punido com reclusão de 5 a 15 anos e pagamento de multa, com regime inicial fechado.",
+                reference: "Lei 11.343/2006 art. 33"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "IBFC",
+                ano: "2022",
+                orgao: "SENAD",
+                dificuldade: "dificil",
+                question: "A causa de diminuição de pena do art. 33, §4º (tráfico privilegiado) pode reduzir a pena de:",
+                alternatives: [
+                    "1/3 a 1/2",
+                    "1/4 a 1/3",
+                    "1/6 a 2/3",
+                    "Não há previsão de redução"
+                ],
+                correct: 2,
+                explanation: "Se o agente for primário, de bons antecedentes, não se dedicar a atividades criminosas nem integrar organização, a pena pode ser reduzida de 1/6 a 2/3.",
+                reference: "Lei 11.343/2006 art. 33, §4º"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "AOCP",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "Induzir, instigar ou auxiliar alguém ao uso indevido de droga:",
+                alternatives: [
+                    "Não é crime",
+                    "É crime punido com detenção de 1 a 3 anos e multa",
+                    "É crime punido com reclusão de 5 a 15 anos",
+                    "É contravenção penal"
+                ],
+                correct: 1,
+                explanation: "Induzir, instigar ou auxiliar alguém ao uso de droga é crime autônomo, punido com detenção de 1 a 3 anos e multa.",
+                reference: "Lei 11.343/2006 art. 33, §2º"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "FGV",
+                ano: "2021",
+                orgao: "PF",
+                dificuldade: "media",
+                question: "Oferecer droga, eventualmente e sem objetivo de lucro, a pessoa de seu relacionamento, para juntos a consumirem:",
+                alternatives: [
+                    "É tráfico de drogas",
+                    "É crime com pena de detenção de 6 meses a 1 ano",
+                    "Não é crime",
+                    "É porte para consumo pessoal"
+                ],
+                correct: 1,
+                explanation: "Oferecer droga eventualmente, sem lucro, a pessoa próxima para consumo conjunto é crime específico, com pena menor que o tráfico.",
+                reference: "Lei 11.343/2006 art. 33, §3º"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "VUNESP",
+                ano: "2024",
+                orgao: "SENAD",
+                dificuldade: "facil",
+                question: "A conversão da pena privativa de liberdade em restritiva de direitos para tráfico privilegiado:",
+                alternatives: [
+                    "É sempre possível",
+                    "É vedada pela Lei de Drogas",
+                    "Foi considerada possível pelo STF",
+                    "Depende apenas do juiz"
+                ],
+                correct: 2,
+                explanation: "O STF declarou inconstitucional a vedação à conversão de penas no tráfico privilegiado, permitindo a substituição se preenchidos os requisitos.",
+                reference: "STF - HC 97.256 e Lei 11.343/2006"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "VUNESP",
+                ano: "2024",
+                orgao: "PRF",
+                dificuldade: "media",
+                question: "Semear, cultivar ou fazer a colheita de plantas destinadas à preparação de drogas:",
+                alternatives: [
+                    "Não é crime se for para consumo próprio",
+                    "É crime equiparado a tráfico",
+                    "É contravenção penal",
+                    "É permitido com autorização"
+                ],
+                correct: 1,
+                explanation: "Plantar, cultivar ou colher plantas para produção de drogas é conduta equiparada ao tráfico, com a mesma pena (5 a 15 anos).",
+                reference: "Lei 11.343/2006 art. 33, §1º, II"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "IBFC",
+                ano: "2023",
+                orgao: "PRF",
+                dificuldade: "dificil",
+                question: "A internação de dependente químico em estabelecimento de saúde:",
+                alternatives: [
+                    "Pode ser compulsória, por determinação judicial",
+                    "Nunca é permitida",
+                    "Depende apenas da vontade da família",
+                    "É sempre voluntária"
+                ],
+                correct: 0,
+                explanation: "A internação pode ser voluntária, involuntária (a pedido de terceiro) ou compulsória (determinada pelo juiz), sempre com avaliação médica.",
+                reference: "Lei 11.343/2006 art. 23-A e Lei 10.216/2001"
+            },
+
+            // Direito e estrutura da Polícia Penal - 10 questões (10%)
+            {
+                category: "Polícia Penal",
+                banca: "FGV",
+                ano: "2021",
+                orgao: "SEJUS",
+                dificuldade: "media",
+                question: "A Emenda Constitucional 104/2019 criou as polícias penais. Elas são vinculadas:",
+                alternatives: [
+                    "Ao Poder Judiciário",
+                    "Aos órgãos responsáveis pela administração penitenciária",
+                    "Ao Ministério Público",
+                    "À Polícia Civil"
+                ],
+                correct: 1,
+                explanation: "As polícias penais federal, estaduais e distrital são vinculadas aos órgãos responsáveis pela administração do sistema penitenciário.",
+                reference: "CF/88 art. 144, §1º-A (EC 104/2019)"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "AOCP",
+                ano: "2022",
+                orgao: "SEJUS",
+                dificuldade: "facil",
+                question: "As atribuições das polícias penais incluem:",
+                alternatives: [
+                    "Apenas segurança dos estabelecimentos penais",
+                    "Segurança e custódia de pessoas presas, provisórias ou condenadas",
+                    "Investigação criminal",
+                    "Julgamento de infrações disciplinares"
+                ],
+                correct: 1,
+                explanation: "As polícias penais são responsáveis pela segurança dos estabelecimentos penais e pela custódia de presos provisórios e condenados.",
+                reference: "CF/88 art. 144, §1º-A"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "AOCP",
+                ano: "2022",
+                orgao: "SEAP",
+                dificuldade: "media",
+                question: "A carreira de policial penal é:",
+                alternatives: [
+                    "Temporária",
+                    "De livre nomeação",
+                    "Organizada em carreira",
+                    "Comissionada"
+                ],
+                correct: 2,
+                explanation: "A polícia penal é organizada em carreira, com ingresso mediante concurso público, garantindo profissionalização e estabilidade.",
+                reference: "CF/88 art. 144, §1º-A"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "CESPE",
+                ano: "2023",
+                orgao: "SEJUS",
+                dificuldade: "dificil",
+                question: "O uso da força por agentes penitenciários deve observar:",
+                alternatives: [
+                    "Discricionariedade absoluta",
+                    "Princípios da legalidade, necessidade e proporcionalidade",
+                    "Apenas a hierarquia",
+                    "Não há regulamentação"
+                ],
+                correct: 1,
+                explanation: "O uso da força deve ser legal, necessário e proporcional, respeitando os direitos humanos e a dignidade dos custodiados.",
+                reference: "Princípios de uso da força - ONU e legislação específica"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "IBFC",
+                ano: "2024",
+                orgao: "SEJUS",
+                dificuldade: "dificil",
+                question: "A revista em estabelecimentos penais deve:",
+                alternatives: [
+                    "Ser vexatória para garantir segurança",
+                    "Respeitar a dignidade das pessoas revistadas",
+                    "Ser realizada sem critérios",
+                    "Incluir sempre revista íntima"
+                ],
+                correct: 1,
+                explanation: "A revista deve garantir segurança sem violar a dignidade humana, sendo vedadas práticas vexatórias, conforme entendimento do STF.",
+                reference: "STF - Súmula Vinculante 56"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "AOCP",
+                ano: "2021",
+                orgao: "SEJUS",
+                dificuldade: "facil",
+                question: "A formação de policiais penais deve incluir:",
+                alternatives: [
+                    "Apenas técnicas de segurança",
+                    "Direitos humanos, ética e legislação penal",
+                    "Somente treinamento físico",
+                    "Não há exigência de formação"
+                ],
+                correct: 1,
+                explanation: "A formação deve ser integral, abrangendo direitos humanos, ética profissional, legislação penal e penitenciária, além de técnicas de segurança.",
+                reference: "Diretrizes de formação - CNJ e CNPCP"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "FGV",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "dificil",
+                question: "O policial penal que comete crime no exercício da função:",
+                alternatives: [
+                    "Não pode ser punido",
+                    "Responde criminalmente como qualquer cidadão",
+                    "Tem imunidade absoluta",
+                    "Só responde administrativamente"
+                ],
+                correct: 1,
+                explanation: "O policial penal responde criminalmente por crimes cometidos, sem qualquer imunidade, podendo inclusive responder por abuso de autoridade.",
+                reference: "Código Penal e Lei 13.869/2019 (Abuso de Autoridade)"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "CESPE",
+                ano: "2021",
+                orgao: "SEAP",
+                dificuldade: "facil",
+                question: "A inteligência penitenciária visa:",
+                alternatives: [
+                    "Apenas punir presos",
+                    "Prevenir fugas, rebeliões e crimes dentro e fora dos presídios",
+                    "Substituir a polícia civil",
+                    "Investigar crimes comuns"
+                ],
+                correct: 1,
+                explanation: "A inteligência penitenciária coleta e analisa informações para prevenir incidentes, garantir segurança e combater organizações criminosas.",
+                reference: "Práticas de inteligência penitenciária"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "AOCP",
+                ano: "2023",
+                orgao: "SEAP",
+                dificuldade: "facil",
+                question: "A classificação dos presos é importante para:",
+                alternatives: [
+                    "Individualizar a execução penal",
+                    "Separar por periculosidade e evitar influências negativas",
+                    "Definir o estabelecimento adequado",
+                    "Todas as alternativas estão corretas"
+                ],
+                correct: 3,
+                explanation: "A classificação permite individualização da pena, separação por periculosidade, prevenção de violência e alocação no estabelecimento adequado.",
+                reference: "LEP art. 5º e art. 6º"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "QUADRIX",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "O Código de Ética dos servidores penitenciários estabelece:",
+                alternatives: [
+                    "Que podem agir com discricionariedade total",
+                    "Deveres de respeito, imparcialidade e proteção dos direitos dos presos",
+                    "Que não precisam seguir normas",
+                    "Apenas obrigações administrativas"
+                ],
+                correct: 1,
+                explanation: "O código de ética estabelece deveres de respeito aos direitos humanos, imparcialidade, probidade e proteção da dignidade dos custodiados.",
+                reference: "Códigos de ética estaduais e federais"
+            },
+            // Questões adicionais para completar 100
+            {
+                category: "LEP",
+                banca: "AOCP",
+                ano: "2021",
+                orgao: "PM",
+                dificuldade: "facil",
+                question: "O condenado à pena privativa de liberdade, no regime aberto, deverá, fora do estabelecimento e sem vigilância, trabalhar, frequentar curso ou exercer outra atividade autorizada, permanecendo recolhido durante:",
+                alternatives: [
+                    "O período diurno",
+                    "O período noturno e nos dias de folga",
+                    "24 horas por dia",
+                    "Apenas nos finais de semana"
+                ],
+                correct: 1,
+                explanation: "No regime aberto, o condenado trabalha ou estuda durante o dia e deve se recolher à Casa do Albergado durante o período noturno e nos dias de folga.",
+                reference: "LEP art. 36"
+            },
+            {
+                category: "LEP",
+                banca: "QUADRIX",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "media",
+                question: "A pena privativa de liberdade será executada em forma progressiva com a transferência para regime menos rigoroso, a ser determinada pelo:",
+                alternatives: [
+                    "Diretor do estabelecimento penal",
+                    "Ministério Público",
+                    "Juiz da execução",
+                    "Conselho Penitenciário"
+                ],
+                correct: 2,
+                explanation: "A progressão de regime é ato jurisdicional, competindo exclusivamente ao Juiz da Execução Penal decidir sobre a transferência para regime menos rigoroso.",
+                reference: "LEP art. 112 e art. 66, III, b"
+            },
+            {
+                category: "Dir. Constitucional",
+                banca: "AOCP",
+                ano: "2021",
+                orgao: "AGU",
+                dificuldade: "dificil",
+                question: "A lei penal não retroagirá, salvo para:",
+                alternatives: [
+                    "Beneficiar o réu",
+                    "Agravar a situação do condenado",
+                    "Criar novos crimes",
+                    "Aumentar penas"
+                ],
+                correct: 0,
+                explanation: "O princípio da retroatividade da lei penal mais benéfica garante que mudanças legislativas favoráveis ao réu sejam aplicadas mesmo a fatos anteriores.",
+                reference: "CF/88 art. 5º, XL"
+            },
+            {
+                category: "Lei de Drogas",
+                banca: "AOCP",
+                ano: "2023",
+                orgao: "PC",
+                dificuldade: "facil",
+                question: "Prescrever ou ministrar, culposamente, drogas sem que delas necessite o paciente, ou fazê-lo em doses excessivas ou em desacordo com determinação legal ou regulamentar:",
+                alternatives: [
+                    "Não é crime",
+                    "É crime punido com detenção de 6 meses a 2 anos e multa",
+                    "É crime punido com reclusão de 5 a 15 anos",
+                    "É contravenção penal"
+                ],
+                correct: 1,
+                explanation: "A prescrição ou ministração culposa de drogas de forma irregular é crime específico previsto na Lei de Drogas, com pena de detenção.",
+                reference: "Lei 11.343/2006 art. 38"
+            },
+            {
+                category: "Polícia Penal",
+                banca: "FGV",
+                ano: "2024",
+                orgao: "DEPEN",
+                dificuldade: "facil",
+                question: "A Lei de Execução Penal estabelece que o pessoal penitenciário deve ser:",
+                alternatives: [
+                    "Recrutado sem critérios específicos",
+                    "Submetido a curso de formação e aperfeiçoamento",
+                    "Contratado temporariamente",
+                    "Dispensado de qualificação profissional"
+                ],
+                correct: 1,
+                explanation: "A LEP determina que o pessoal penitenciário seja constantemente qualificado através de cursos de formação e aperfeiçoamento, garantindo profissionalização.",
+                reference: "LEP art. 76"
+            }
+        ];
+
+        // ==================== VARIÁVEIS GLOBAIS ====================
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let stats = {
+            answered: 0,
+            correct: 0,
+            incorrect: 0
+        };
+        let questionOrder = [];
+        let startTime = Date.now();
+
+        // ==================== FUNÇÕES PRINCIPAIS ====================
+
+        // Inicializar aplicação
+        function init() {
+            loadProgress();
+            setupEventListeners();
+            updateQuestionOrder();
+            loadQuestion();
+            updateStats();
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            document.getElementById('btnNext').addEventListener('click', nextQuestion);
+            document.getElementById('btnPrevious').addEventListener('click', previousQuestion);
+            document.getElementById('btnRestart').addEventListener('click', confirmRestart);
+            document.getElementById('randomMode').addEventListener('change', toggleRandomMode);
+        }
+
+        // Atualizar ordem das questões
+        function updateQuestionOrder() {
+            const isRandom = document.getElementById('randomMode').checked;
+            
+            if (isRandom) {
+                // Embaralhar questões
+                questionOrder = [...Array(questionsBank.length).keys()];
+                shuffleArray(questionOrder);
+            } else {
+                // Ordem sequencial
+                questionOrder = [...Array(questionsBank.length).keys()];
+            }
+            
+            // Resetar se mudou o modo
+            if (currentQuestionIndex > 0) {
+                if (confirm('Mudar o modo irá reiniciar o simulado. Deseja continuar?')) {
+                    resetSimulator();
+                } else {
+                    document.getElementById('randomMode').checked = !isRandom;
+                }
+            }
+        }
+
+        // Embaralhar array (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Carregar questão atual
+        function loadQuestion() {
+            const questionIndex = questionOrder[currentQuestionIndex];
+            const question = questionsBank[questionIndex];
+            
+            // Atualizar tags
+            const tagsContainer = document.getElementById('questionTags');
+            tagsContainer.innerHTML = '';
+            
+            if (question.banca) {
+                tagsContainer.innerHTML += `<span class="tag tag-banca">${question.banca}</span>`;
+            }
+            if (question.ano) {
+                tagsContainer.innerHTML += `<span class="tag tag-ano">${question.ano}</span>`;
+            }
+            if (question.orgao) {
+                tagsContainer.innerHTML += `<span class="tag tag-orgao">${question.orgao}</span>`;
+            }
+            if (question.category) {
+                tagsContainer.innerHTML += `<span class="tag tag-materia">${question.category}</span>`;
+            }
+            if (question.dificuldade) {
+                tagsContainer.innerHTML += `<span class="tag tag-dificuldade ${question.dificuldade}">${question.dificuldade}</span>`;
+            }
+            
+            // Atualizar cabeçalho
+            document.getElementById('questionNumber').textContent = `Questão ${currentQuestionIndex + 1} de ${questionsBank.length}`;
+            document.getElementById('questionCategory').textContent = question.category;
+            document.getElementById('questionText').textContent = question.question;
+            
+            // Carregar alternativas
+            const alternativesContainer = document.getElementById('alternatives');
+            alternativesContainer.innerHTML = '';
+            
+            question.alternatives.forEach((alt, index) => {
+                const div = document.createElement('div');
+                div.className = 'alternative';
+                div.innerHTML = `
+                    <div class="alternative-letter">${String.fromCharCode(65 + index)}</div>
+                    <div>${alt}</div>
+                `;
+                
+                // Verificar se já foi respondida
+                const userAnswer = userAnswers[currentQuestionIndex];
+                if (userAnswer !== undefined) {
+                    div.classList.add('disabled');
+                    if (index === userAnswer) {
+                        div.classList.add('selected');
+                        if (index === question.correct) {
+                            div.classList.add('correct');
+                        } else {
+                            div.classList.add('incorrect');
+                        }
+                    }
+                    if (index === question.correct) {
+                        div.classList.add('correct');
+                    }
+                } else {
+                    div.addEventListener('click', () => selectAnswer(index));
+                }
+                
+                alternativesContainer.appendChild(div);
+            });
+            
+            // Mostrar/ocultar explicação
+            const explanation = document.getElementById('explanation');
+            if (userAnswer !== undefined) {
+                explanation.classList.add('show');
+                document.getElementById('explanationText').textContent = question.explanation;
+                document.getElementById('legalReference').textContent = `"Anexo de exemplo: ${question.reference}"`;
+            } else {
+                explanation.classList.remove('show');
+            }
+            
+            // Atualizar botões
+            document.getElementById('btnPrevious').disabled = currentQuestionIndex === 0;
+            
+            // Atualizar barra de progresso
+            updateProgressBar();
+        }
+
+        // Selecionar resposta
+        function selectAnswer(answerIndex) {
+            const questionIndex = questionOrder[currentQuestionIndex];
+            const question = questionsBank[questionIndex];
+            
+            // Salvar resposta
+            userAnswers[currentQuestionIndex] = answerIndex;
+            
+            // Atualizar estatísticas
+            stats.answered++;
+            if (answerIndex === question.correct) {
+                stats.correct++;
+            } else {
+                stats.incorrect++;
+            }
+            
+            // Recarregar questão para mostrar resultado
+            loadQuestion();
+            updateStats();
+            saveProgress();
+            
+            // Verificar se terminou
+            if (stats.answered === questionsBank.length) {
+                setTimeout(showFinalResult, 1000);
+            }
+        }
+
+        // Próxima questão
+        function nextQuestion() {
+            if (currentQuestionIndex < questionsBank.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            }
+        }
+
+        // Questão anterior
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            document.getElementById('statAnswered').textContent = stats.answered;
+            document.getElementById('statCorrect').textContent = stats.correct;
+            document.getElementById('statIncorrect').textContent = stats.incorrect;
+            
+            const percentage = stats.answered > 0 ? Math.round((stats.correct / stats.answered) * 100) : 0;
+            document.getElementById('statPercentage').textContent = percentage + '%';
+        }
+
+        // Atualizar barra de progresso
+        function updateProgressBar() {
+            const progress = Math.round((stats.answered / questionsBank.length) * 100);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress + '%';
+        }
+
+        // Confirmar reinício
+        function confirmRestart() {
+            if (confirm('Tem certeza que deseja reiniciar o simulado? Todo o progresso será perdido.')) {
+                resetSimulator();
+            }
+        }
+
+        // Reiniciar simulado
+        function resetSimulator() {
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            stats = { answered: 0, correct: 0, incorrect: 0 };
+            startTime = Date.now();
+            updateQuestionOrder();
+            loadQuestion();
+            updateStats();
+            saveProgress();
+            closeModal();
+        }
+
+        // Alternar modo aleatório
+        function toggleRandomMode() {
+            updateQuestionOrder();
+        }
+
+        // Mostrar resultado final
+        function showFinalResult() {
+            const percentage = Math.round((stats.correct / questionsBank.length) * 100);
+            const timeSpent = Math.round((Date.now() - startTime) / 60000); // minutos
+            
+            document.getElementById('finalCorrect').textContent = stats.correct;
+            document.getElementById('finalIncorrect').textContent = stats.incorrect;
+            document.getElementById('finalPercentage').textContent = percentage + '%';
+            
+            document.getElementById('resultModal').classList.add('show');
+        }
+
+        // Fechar modal
+        function closeModal() {
+            document.getElementById('resultModal').classList.remove('show');
+        }
+
+        // Salvar progresso no localStorage
+        function saveProgress() {
+            const progress = {
+                currentQuestionIndex,
+                userAnswers,
+                stats,
+                questionOrder,
+                startTime,
+                randomMode: document.getElementById('randomMode').checked
+            };
+            localStorage.setItem('simuladoProgress', JSON.stringify(progress));
+        }
+
+        // Carregar progresso do localStorage
+        function loadProgress() {
+            const saved = localStorage.getItem('simuladoProgress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                currentQuestionIndex = progress.currentQuestionIndex || 0;
+                userAnswers = progress.userAnswers || [];
+                stats = progress.stats || { answered: 0, correct: 0, incorrect: 0 };
+                questionOrder = progress.questionOrder || [];
+                startTime = progress.startTime || Date.now();
+                document.getElementById('randomMode').checked = progress.randomMode || false;
+            }
+        }
+
+        // ==================== INICIALIZAÇÃO ====================
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
